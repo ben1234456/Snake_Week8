@@ -37,7 +37,8 @@ namespace Snake
             int life = 3;
             int userPoint;
             int checkPoint = 200;
-            bool gameFinish = false;
+            int checkWinInput = 1;
+            int userWinCon = 0;
     
             //Background music 
             SoundPlayer player = new SoundPlayer();
@@ -60,6 +61,10 @@ namespace Snake
             Random randomNumbersGenerator = new Random();
             Console.BufferHeight = Console.WindowHeight;
             lastFoodTime = Environment.TickCount;
+            //testing
+            int foodHeight = randomNumbersGenerator.Next(0, Console.WindowHeight);
+            int foodWidth = randomNumbersGenerator.Next(0, Console.WindowHeight);
+            int food2Width = foodWidth + 1;
 
             Console.WriteLine("Please enter your name:");
             string name = Console.ReadLine();
@@ -98,7 +103,8 @@ namespace Snake
             Position food;
             do
             {
-                food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight), randomNumbersGenerator.Next(0, Console.WindowWidth));
+                food = new Position(foodHeight, foodWidth);
+                //food = new Position(foodHeight, food2Width);
             }
             while (snakeElements.Contains(food) || obstacles.Contains(food));
             SetFood();
@@ -282,7 +288,7 @@ namespace Snake
                 {
                     negativePoints = negativePoints + 50;
                     Console.SetCursorPosition(food.col, food.row);
-                    Console.Write(" ");
+                    Console.Write("  ");
                     AddNewFood();
                     lastFoodTime = Environment.TickCount;
                 }
@@ -290,14 +296,29 @@ namespace Snake
                 SetFood();
 
                 //Add winning requirement
-                if (snakeElements.Count == multiplier * 20)
+                if (checkWinInput == 1)
                 {
-                    Win();
-                    return;
-                }
+                    if (snakeElements.Count == multiplier * 20)
+                    {
+                        Win();
+                        return;
+                    }
 
-                sleepTime -= 0.01;
-                Thread.Sleep((int)sleepTime);
+                    sleepTime -= 0.01;
+                    Thread.Sleep((int)sleepTime);
+                }
+                else if (checkWinInput == 2)
+                {
+                    if (snakeElements.Count == userWinCon)
+                    {
+                        Win();
+                        return;
+                    }
+
+                    sleepTime -= 0.01;
+                    Thread.Sleep((int)sleepTime);
+                }
+                
 
 
             }
@@ -307,7 +328,12 @@ namespace Snake
             {
                 Console.SetCursorPosition(food.col, food.row);
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("@");
+                //set the food to black heart
+                string cUnicode = "2665";
+                int value = int.Parse(cUnicode, System.Globalization.NumberStyles.HexNumber);
+                string symbol = char.ConvertFromUtf32(value).ToString();
+                Console.OutputEncoding = System.Text.Encoding.Unicode;
+                Console.Write(symbol + symbol);
             };
 
             // set the obstacle position,color,icon.
@@ -315,7 +341,12 @@ namespace Snake
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.SetCursorPosition(obstacle.col, obstacle.row);
-                Console.Write("=");
+                //set the obstacle to medium shade
+                string cUnicode = "2592";
+                int value = int.Parse(cUnicode, System.Globalization.NumberStyles.HexNumber);
+                string symbol = char.ConvertFromUtf32(value).ToString();
+                Console.OutputEncoding = System.Text.Encoding.Unicode;
+                Console.Write(symbol);
             }
 
             //set the snake element postion,color,icon
@@ -329,7 +360,6 @@ namespace Snake
             //lose
             void Lose()
             {
-                gameFinish = true;
                 int y = Console.WindowHeight / 2;
                 string text1 = "Game over!";
                 string text2 = "Your points are: ";
@@ -388,7 +418,6 @@ namespace Snake
 
             void Win()
             {
-                gameFinish = true;
                 int y = Console.WindowHeight / 2;
                 string text1 = "You Win!!!!";
                 string text2 = "Your points are: ";
@@ -476,10 +505,13 @@ namespace Snake
             {
                 Console.Clear();
                 //Showing Guides for the Player.
+                Console.WriteLine("************************************************************************************************************************");
                 Console.WriteLine("Welcome to the Snake Game\n");
                 Console.WriteLine("This Page will be guiding you how to play this game.\n");
                 Console.WriteLine("The below are the symbols of the game and what are they representing\n");
-                Console.WriteLine(" ***>  -  Your snake     @  - Your food     =  -  Obstacle\n");
+                //this code is to allow the unicode character to appear
+                Console.OutputEncoding = System.Text.Encoding.Unicode;
+                Console.WriteLine(" ***>  -  Your snake     \u2665  - Your food     \u2592  -  Obstacle\n");
                 Console.WriteLine("The Control Keys are your Arrow Keys.\n");
                 Console.WriteLine("Your snake will only move foward and you need to use your arrow keys to control its moving direction.\n");
                 Console.WriteLine("The game will be having 3 lifes and 5 obstacles to start with and obstacles are randomly spawn.\n\nEach time you eat a food, which will be showing like @ symbol\n");
@@ -490,35 +522,35 @@ namespace Snake
                 Console.WriteLine("Normal - Each 1000 score will increase 1 EXTRA LIFE. Each obstacle consume will increase 2 more obstacle and Food disappear speed is increased. Winning Requirement: Eat 40 foods\n");
                 Console.WriteLine("Hard - Each 1500 score will increase 1 EXTRA LIFE. Each obstacle consume will increase 3 more obstacle and Food disappeaer speed is increase significantly. Winning Requirement: Eat 60 foods\n");
                 Console.WriteLine("Your score will be recorded into the leaderboard for record everytime you WIN or Lose.\n");
+                Console.WriteLine("************************************************************************************************************************");
 
                 //Prompt the user to select an option after viewing leaderboard
-                string userLeadInput;
-                int userLIResult = 0;
+                string userHelpInput;
+                int userHelpResult = 0;
                 bool validInput = false;
-
-                Console.Write("\n" + "Enter '1' to go back to main menu and '2' to exit the program\n");
-                userLeadInput = Console.ReadLine();
 
                 while (!validInput)
                 {
+                    Console.Write("\n" + "Enter '1' to go back to main menu and '2' to exit the program\n");
+                    userHelpInput = Console.ReadLine();
 
-                    if (!int.TryParse(userLeadInput, out userLIResult))
+                    if (!int.TryParse(userHelpInput, out userHelpResult))
                     {
                         Console.WriteLine("Please enter '1' or '2'");
                     }
-                    else if (userLIResult.Equals(0))
+                    else if (userHelpResult < 1 || userHelpResult > 2)
                     {
-                        Console.WriteLine("You cannot enter zero.");
+                        Console.WriteLine("Input must be 1 or 2");
                     }
                     else
                     {
                         validInput = true;
-                        if (userLIResult == 1)
+                        if (userHelpResult == 1)
                         {
                             Console.Clear();
                             menu();
                         }
-                        else if (userLIResult == 2)
+                        else if (userHelpResult == 2)
                         {
                             Environment.Exit(0);
                         }
@@ -653,8 +685,8 @@ namespace Snake
                 do
                 {
                     int ystart = (Console.WindowHeight-2) / 2;
-                    string text1 = "Welcome to the Snake Menu. Please choose an option below:";
-                    string text2 = "\t\t\t(1) Play Game\t(2) View Leaderboard\t(3) Help\t(4) Quit Game";
+                    string text1 = "\t\tWelcome to the Snake Menu. Please choose an option below:";
+                    string text2 = "\t\t(1) Play Game\t(2) View Leaderboard\t(3) Help\t(4) Quit Game\t(5) Freedom Mode";
                     int text1length = text1.Length;
                     int text2length = text2.Length;
 
@@ -695,8 +727,37 @@ namespace Snake
                             break;
                         case "4":
                             Console.WriteLine("You have chosen option" + userOption + " -> Exit the game");
+
                             condition = "correct";
                             Environment.Exit(0);
+                            break;
+                        case "5":
+                            string userWinInput;
+                            int userWinResult = 0;
+                            bool validInput = false;
+
+                            while (!validInput)
+                            {
+                                Console.Write("Please input your winning condition (input integer):");
+                                userWinInput = Console.ReadLine();
+
+                                if (!int.TryParse(userWinInput, out userWinResult))
+                                {
+                                    Console.WriteLine("Please enter an integer\n");
+                                }
+                                else if (userWinResult < 10 || userWinResult > 100)
+                                {
+                                    Console.WriteLine("The winning condition must be between 10 - 100\n");
+                                }
+                                else
+                                {
+                                    validInput = true;
+                                    checkWinInput = 2;
+                                    userWinCon = userWinResult;
+                                    menu();
+                                }
+                            }
+                            condition = "correct";
                             break;
                         default:
                             Console.WriteLine("Invalid user input. Please try again.\n");
